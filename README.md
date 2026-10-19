@@ -34,4 +34,5 @@ pip install .
 
 ## Testing
 Run the demo_qllg.py in the root directory for testing and confirmation. Change the backend to CPU in demo_qllg.py if you don't have access to an nvidia GPU. This is a 10 spin Heisenberg Ring system which can also be verified using the analytical formula as the Hilbert space dimension is small enough 1024=2^10. This is the resulting Hamiltonian time evolution.  
-<img width="1211" height="210" alt="image" src="https://github.com/user-attachments/assets/0b45c990-f70f-433a-ace2-9e21d789724d" />
+<img width="762" height="186" alt="image" src="https://github.com/user-attachments/assets/66ec0c60-f0b8-4231-86c4-f559a840f39e" />
+
