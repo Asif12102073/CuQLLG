@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+
+name = "qllg"
+version = "0.1.0"
+description = "A high-performance GPU (cupy) or CPU (numba JIT) based Low-Rank Eigenmode solver for quantum Landau-Lifshitz and Landau-Lifshitz-Gilbert equations"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=2.0.0",
+    "scipy>=1.14.0",
+    "numba>=0.60.0",
+    "matplotlib>="3.10.0"
+]
+
+[project.optional-dependencies]
+gpu = [
+    "cupy>=14.0.0"
+]
