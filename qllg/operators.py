@@ -74,14 +74,14 @@ class SpinSystem:
             if D_z != 0.0:
                 H += D_z * (self.Sx[i] @ self.Sy[j] - self.Sy[i] @ self.Sx[j])
 
-            # Zeeman interaction: - mu * sum_i B . S_i
-            bx, by, bz = B
-            for i in range(self.n_spins):
-                if bx != 0.0:
-                    H -= bx * self.Sx[i]
-                if by != 0.0:
-                    H -= by * self.Sy[i]
-                if bz != 0.0:
-                    H -= bz * self.Sz[i]
+        # Zeeman interaction: - mu * sum_i B . S_i
+        bx, by, bz = B
+        for i in range(self.n_spins):
+            if bx != 0.0:
+                H -= bx * self.Sx[i]
+            if by != 0.0:
+                H -= by * self.Sy[i]
+            if bz != 0.0:
+                H -= bz * self.Sz[i]
 
         return H
