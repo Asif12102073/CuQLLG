@@ -26,6 +26,6 @@ def spin_covariance_matrix(
     for j in range(3):
         for k in range(3):
             # C\_jk = 0.5 \* &lt;{S\_j, S\_k}&gt; - <S\_j> <S\_k>
-            comm = expectation_value(ops[j] @ ops[k] - ops[k] @ ops[j], state, backend)
-            C[j, k] = 0.5 * comm - s_mean[j] * s_mean[k]
+            anticomm = expectation_value(ops[j] @ ops[k] + ops[k] @ ops[j], state, backend)
+            C[j, k] = 0.5 * anticomm - s_mean[j] * s_mean[k]
     return s_mean, C
