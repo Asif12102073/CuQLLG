@@ -5,6 +5,8 @@ import numpy as np
 from .states import LowRankState
 from .backend import Backend
 
+
+
 def expectation_value(op: Any, state: LowRankState, backend: Backend) -> float:
     r"""Evaluates \\langle A \\rangle = \\text{Tr}[\\Lambda\_0 (V^\\dagger A V)] in O(N r) operations."""
     xp = backend.xp
@@ -25,11 +27,10 @@ def spin_covariance_matrix(
     C = np.zeros((3, 3), dtype=np.float64)
     for j in range(3):
         for k in range(3):
-            # C\_jk = 0.5 \* &lt;{S\_j, S\_k}&gt; - <S\_j> <S\_k>
-            anticomm = expectation_value(ops[j] @ ops[k] + ops[k] @ ops[j], state, backend)
-            C[j, k] = 0.5 * anticomm - s_mean[j] * s_mean[k]
+            # C\_jk = 0.5 \* &lt;{S\_j, S\_k}&gt; + <S\_j> <S\_k>
+            comm = expectation_value(ops[j] @ ops[k] + ops[k] @ ops[j], state, backend)
+            C[j, k] = 0.5 * comm - s_mean[j] * s_mean[k]
     return s_mean, C
-
 
 def wootters_concurrence_dimer(state: LowRankState, backend: Backend) -> float:
     """Computes Wootters concurrence C(rho) for a 2-spin-1/2 dimer in O(r^2) operations."""
@@ -46,7 +47,6 @@ def wootters_concurrence_dimer(state: LowRankState, backend: Backend) -> float:
     evals = np.sort(np.sqrt(np.maximum(0.0, np.real(evals_raw))))[::-1]
     concurrence = max(0.0, evals[0] - evals[1] - evals[2] - evals[3])
     return float(concurrence)
-
 
 def chsh_bell_parameter_dimer(state: LowRankState, backend: Backend) -> float:
     """
