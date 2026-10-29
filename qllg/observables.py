@@ -29,3 +29,20 @@ def spin_covariance_matrix(
             anticomm = expectation_value(ops[j] @ ops[k] + ops[k] @ ops[j], state, backend)
             C[j, k] = 0.5 * anticomm - s_mean[j] * s_mean[k]
     return s_mean, C
+
+
+def wootters_concurrence_dimer(state: LowRankState, backend: Backend) -> float:
+    """Computes Wootters concurrence C(rho) for a 2-spin-1/2 dimer in O(r^2) operations."""
+    xp = backend.xp
+    V = backend.to_host(state.V)  # (4, r)
+    lambdas = backend.to_host(state.lambda_vec)  # Full 4x4 density matrix reconstruction
+    rho = (V * lambdas) @ V.conj().T  # Spin-flip matrix sigma_y ⊗ sigma_y
+    sy = np.array([[0, -1j], [1j, 0]])
+    sy_sy = np.kron(sy, sy)  # Spin-flipped density matrix
+    R = rho @ (sy_sy @ rho.conj() @ sy_sy)
+    rho_tilde = sy_sy @ rho.conj() @ sy_sy
+    R = rho @ rho_tilde
+    evals = np.sort(np.sqrt(np.maximum(0.0, np.real(la.eigvals(R)))))[::-1]
+    concurrence = max(0.0, evals[0] - evals[1] - evals[2] - evals[3])
+    return float(concurrence)
+
