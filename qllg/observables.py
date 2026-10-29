@@ -19,7 +19,7 @@ def expectation_value(op: Any, state: LowRankState, backend: Backend) -> float:
 def spin_covariance_matrix(
     Sx: Any, Sy: Any, Sz: Any, state: LowRankState, backend: Backend
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """Computes mean spin vector <s> and 3x3 covariance matrix C\_jk."""
+    """Computes mean spin vector <s> and 3x3 covariance matrix C_jk."""
     ops = [Sx, Sy, Sz]
     s_mean = np.array([expectation_value(op, state, backend) for op in ops])
     C = np.zeros((3, 3), dtype=np.float64)
@@ -42,7 +42,8 @@ def wootters_concurrence_dimer(state: LowRankState, backend: Backend) -> float:
     R = rho @ (sy_sy @ rho.conj() @ sy_sy)
     rho_tilde = sy_sy @ rho.conj() @ sy_sy
     R = rho @ rho_tilde
-    evals = np.sort(np.sqrt(np.maximum(0.0, np.real(la.eigvals(R)))))[::-1]
+    evals_raw = np.linalg.eigvals(R)
+    evals = np.sort(np.sqrt(np.maximum(0.0, np.real(evals_raw))))[::-1]
     concurrence = max(0.0, evals[0] - evals[1] - evals[2] - evals[3])
     return float(concurrence)
 
@@ -71,6 +72,6 @@ def chsh_bell_parameter_dimer(state: LowRankState, backend: Backend) -> float:
             op = np.kron(paulis[i], paulis[j])
             T[i, j] = np.real(np.trace(rho @ op))
             
-    tt_evals = np.sort(la.eigvalsh(T.T @ T))[::-1]
+    tt_evals = np.linalg.eigvalsh(T.T @ T)[::-1]
     u1, u2 = tt_evals[0], tt_evals[1]
     return 2.0 * float(np.sqrt(max(0.0, u1 + u2)))
