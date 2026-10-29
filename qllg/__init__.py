@@ -5,7 +5,7 @@ from .backend import Backend
 from .operators import SpinSystem, spin_half_operators, spin_one_operators
 from .states import LowRankState, StateBuilder
 from .solvers import QSpinSolver
-from .observables import expectation_value, spin_covariance_matrix
+from .observables import expectation_value, spin_covariance_matrix,chsh_bell_parameter_dimer, wootters_concurrence_dimer
 
 __version__ = "0.1.0"
 __all__ = [
@@ -18,4 +18,6 @@ __all__ = [
     "QSpinSolver",
     "expectation_value",
     "spin_covariance_matrix",
+    "chsh_bell_parameter_dimer",
+    "wootters_concurrence_dimer",
 ]
