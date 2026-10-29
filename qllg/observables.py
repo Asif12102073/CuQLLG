@@ -46,3 +46,31 @@ def wootters_concurrence_dimer(state: LowRankState, backend: Backend) -> float:
     concurrence = max(0.0, evals[0] - evals[1] - evals[2] - evals[3])
     return float(concurrence)
 
+
+def chsh_bell_parameter_dimer(state: LowRankState, backend: Backend) -> float:
+    """
+    Computes Horodecki CHSH Bell parameter S_CHSH(rho) for a 2-spin-1/2 dimer (N = 4).
+    Local realism implies S <= 2. Maximal quantum violation achieves S = 2*sqrt(2) ~ 2.8284.
+    """
+    if state.V.shape[0] != 4:
+        raise ValueError("chsh_bell_parameter_dimer requires a 2-spin-1/2 system (N = 4).")
+    
+    V_host = backend.to_host(backend.to_device(state.V))
+    lambda_host = backend.to_host(backend.to_device(state.lambda_vec))
+    rho = (V_host * lambda_host) @ V_host.conj().T
+    
+    paulis = [
+        np.array([[0.0, 1.0], [1.0, 0.0]], dtype=np.complex128),
+        np.array([[0.0, -1j], [1j, 0.0]], dtype=np.complex128),
+        np.array([[1.0, 0.0], [0.0, -1.0]], dtype=np.complex128)
+    ]
+    
+    T = np.zeros((3, 3), dtype=np.float64)
+    for i in range(3):
+        for j in range(3):
+            op = np.kron(paulis[i], paulis[j])
+            T[i, j] = np.real(np.trace(rho @ op))
+            
+    tt_evals = np.sort(la.eigvalsh(T.T @ T))[::-1]
+    u1, u2 = tt_evals[0], tt_evals[1]
+    return 2.0 * float(np.sqrt(max(0.0, u1 + u2)))
