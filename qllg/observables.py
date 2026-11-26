@@ -4,7 +4,7 @@ from typing import Any, Tuple
 import numpy as np
 from .states import LowRankState
 from .backend import Backend
-
+import scipy.linalg as la
 
 
 def expectation_value(op: Any, state: LowRankState, backend: Backend) -> float:
@@ -75,3 +75,30 @@ def chsh_bell_parameter_dimer(state: LowRankState, backend: Backend) -> float:
     tt_evals = np.linalg.eigvalsh(T.T @ T)[::-1]
     u1, u2 = tt_evals[0], tt_evals[1]
     return 2.0 * float(np.sqrt(max(0.0, u1 + u2)))
+
+
+def horodecki_chsh_parameter(state: LowRankState, backend: Backend) -> float:
+    """Computes Horodecki CHSH Bell nonlocality parameter S for a 2-spin-1/2 dimer."""
+    V = backend.to_host(state.V)
+    lambdas = backend.to_host(state.lambda_vec)
+    rho = (V * lambdas) @ V.conj().T
+    
+    # Pauli matrices
+    pauli = [
+        np.array([[0, 1], [1, 0]], dtype=np.complex128),
+        np.array([[0, -1j], [1j, 0]], dtype=np.complex128),
+        np.array([[1, 0], [0, -1]], dtype=np.complex128),
+    ]
+    
+    # Compute 3x3 correlation matrix T_ij = Tr(rho * (sigma_i x sigma_j))
+    T = np.zeros((3, 3), dtype=np.float64)
+    for i in range(3):
+        for j in range(3):
+            sigma_ij = np.kron(pauli[i], pauli[j])
+            T[i, j] = np.real(np.trace(rho @ sigma_ij))
+            
+    # Eigenvalues of T^T T
+    TT = T.T @ T
+    u = np.sort(np.real(la.eigvals(TT)))[::-1]
+    S_chsh = 2.0 * np.sqrt(max(0.0, u[0]) + max(0.0, u[1]))
+    return float(S_chsh)
