@@ -102,3 +102,52 @@ def horodecki_chsh_parameter(state: LowRankState, backend: Backend) -> float:
     u = np.sort(np.real(la.eigvals(TT)))[::-1]
     S_chsh = 2.0 * np.sqrt(max(0.0, u[0]) + max(0.0, u[1]))
     return float(S_chsh)
+
+
+
+_PAULI = (
+    np.array([[0.0, 1.0], [1.0, 0.0]], dtype=np.complex128),
+    np.array([[0.0, -1j], [1j, 0.0]], dtype=np.complex128),
+    np.array([[1.0, 0.0], [0.0, -1.0]], dtype=np.complex128),
+)
+
+
+def _dimer_rho(state: LowRankState, backend: Backend, who: str) -> np.ndarray:
+    """Dense 4x4 density matrix of a 2-spin-1/2 state, copied to the host (works for CPU and GPU backends)."""
+    if state.V.shape[0] != 4:
+        raise ValueError(f"{who} requires a 2-spin-1/2 system (N = 4).")
+    V = backend.to_host(state.V)
+    lam = backend.to_host(state.lambda_vec)
+    return (V * lam) @ V.conj().T
+
+
+def dimer_pauli_coefficients(state: LowRankState, backend: Backend) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Bloch vectors and correlation matrix of a 2-spin-1/2 state, rho = (1/4) T_ab sigma_a (x) sigma_b.
+
+    Returns (r1, r2, T): r1_k = Tr(rho sigma_k (x) 1), r2_l = Tr(rho 1 (x) sigma_l),
+    T_kl = Tr(rho sigma_k (x) sigma_l)  (PRL 133, 266704, Eq. 9). Spin 1 is the first tensor factor.
+    """
+    rho = _dimer_rho(state, backend, "dimer_pauli_coefficients")
+    I2 = np.eye(2, dtype=np.complex128)
+    r1 = np.array([np.real(np.trace(rho @ np.kron(p, I2))) for p in _PAULI])
+    r2 = np.array([np.real(np.trace(rho @ np.kron(I2, p))) for p in _PAULI])
+    T = np.array([[np.real(np.trace(rho @ np.kron(pk, pl))) for pl in _PAULI] for pk in _PAULI])
+    return r1, r2, T
+
+
+def correlation_matrix_dimer(state: LowRankState, backend: Backend) -> np.ndarray:
+    """3x3 correlation matrix T_kl = Tr(rho sigma_k (x) sigma_l) of a 2-spin-1/2 state."""
+    return dimer_pauli_coefficients(state, backend)[2]
+
+
+def bell_nonlocality_dimer(state: LowRankState, backend: Backend) -> float:
+    """Bell nonlocality B(rho) = sqrt(max(u1^2 + u2^2 - 1, 0)) (PRL 133, 266704).
+
+    u1, u2 are the two largest singular values of the correlation matrix T_kl (Horodecki criterion).
+    B > 0 iff the CHSH inequality can be violated; B = 1 for maximally entangled states, and the
+    maximal CHSH value is 2*sqrt(u1^2 + u2^2) = 2*sqrt(1 + B^2).
+    """
+    u = np.linalg.svd(correlation_matrix_dimer(state, backend), compute_uv=False)
+    return float(np.sqrt(max(u[0] ** 2 + u[1] ** 2 - 1.0, 0.0)))
+
+
