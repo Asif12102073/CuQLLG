@@ -104,7 +104,7 @@ def horodecki_chsh_parameter(state: LowRankState, backend: Backend) -> float:
     return float(S_chsh)
 
 
-
+#PRL -paper helper function section ==START
 _PAULI = (
     np.array([[0.0, 1.0], [1.0, 0.0]], dtype=np.complex128),
     np.array([[0.0, -1j], [1j, 0.0]], dtype=np.complex128),
@@ -149,5 +149,7 @@ def bell_nonlocality_dimer(state: LowRankState, backend: Backend) -> float:
     """
     u = np.linalg.svd(correlation_matrix_dimer(state, backend), compute_uv=False)
     return float(np.sqrt(max(u[0] ** 2 + u[1] ** 2 - 1.0, 0.0)))
+
+#PRL -paper helper function section ==END
 
 
